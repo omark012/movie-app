@@ -23,7 +23,12 @@ const MovieContainer = ({
   };
   return (
     <>
-      <Trending trendingMovies={trendingMovies} openModal={openModal} />
+      <Trending
+        trendingMovies={trendingMovies}
+        openModal={openModal}
+        isLoading={isLoading}
+        errorMessage={errorMessage}
+      />
       <AllMovies
         movieList={movieList}
         isLoading={isLoading}

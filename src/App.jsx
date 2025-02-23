@@ -79,14 +79,36 @@ const App = () => {
   // Fetch Trending Movies from TMDB API
 
   const fetchTrendingMovies = async () => {
+    setIsLoading(true);
     try {
       const url = `${API_BASE_URL}/trending/movie/day`;
       const response = await fetch(url, API_OPTIONS);
       const data = await response.json();
-      console.log(data.results, "trend");
-      setTrendingMovies(data.results);
+
+      //Fetching trailer for each Movie
+      const moviesWithTrailers = await Promise.all(
+        data.results.map(async (movie) => {
+          const trailerUrl = `${API_BASE_URL}/movie/${movie.id}/videos?api_key=${API_KEY}&language=en-US`;
+          const trailerResponse = await fetch(trailerUrl, API_OPTIONS);
+          const trailerData = await trailerResponse.json();
+
+          const trailer = trailerData.results.find(
+            (video) => video.type === "Trailer" && video.site === "YouTube"
+          );
+
+          return {
+            ...movie,
+            trailerLink: trailer
+              ? `https://www.youtube.com/watch?v=${trailer.key}`
+              : null,
+          };
+        })
+      );
+      setTrendingMovies(moviesWithTrailers);
     } catch (error) {
       console.error(`Error while fetching Trending movies: ${error}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 

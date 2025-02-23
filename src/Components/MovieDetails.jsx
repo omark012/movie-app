@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 
 const MovieDetails = ({ movie, closeModal }) => {
-  console.log(movie, "details");
-
   const {
     title,
     release_date,
@@ -48,11 +46,11 @@ const MovieDetails = ({ movie, closeModal }) => {
                 {vote_average ? vote_average.toFixed(1) : "N/A"}
               </p>
             </div>
-            <div className="lang">
+            <div className="lang capitalize">
               <p className=" bg-slate-700 p-1 rounded">{original_language}</p>
             </div>
           </div>
-          <p className=" mt-2 h-auto text-base  ">{overview}</p>
+          <p className=" mt-2 h-auto text-base text-justify">{overview}</p>
 
           <a
             className="px-4 py-2 w-full bg-red-500 text-white rounded-lg transition duration-200 cursor-pointer text-xl text-center hover:bg-red-600"
