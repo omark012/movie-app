@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Search from "./Components/Search";
-import Spinner from "./Components/Spinner";
-import MovieCard from "./Components/MovieCard";
 import { useDebounce } from "react-use";
+import Header from "./Components/Header";
+import Trending from "./Components/Trending";
+import AllMovies from "./Components/AllMovies";
+import MovieDetails from "./Components/MovieDetails";
+import MovieContainer from "./Components/MovieContainer";
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
   //API properties
 
@@ -27,6 +31,7 @@ const App = () => {
   // debounce the search term to prevent making many API requests while typing.
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 1500, [searchTerm]);
 
+  // Fetching All Movies and Searched using TMDB API
   const fetchMovies = async (query) => {
     setIsLoading(true);
 
@@ -42,8 +47,27 @@ const App = () => {
         return;
       }
 
-      setMovieList(data.results);
-      console.log(movieList);
+      // Fetch trailers for each movie
+      const moviesWithTrailers = await Promise.all(
+        data.results.map(async (movie) => {
+          const trailerUrl = `${API_BASE_URL}/movie/${movie.id}/videos?api_key=${API_KEY}&language=en-US`;
+          const trailerResponse = await fetch(trailerUrl, API_OPTIONS);
+          const trailerData = await trailerResponse.json();
+
+          const trailer = trailerData.results.find(
+            (video) => video.type === "Trailer" && video.site === "YouTube"
+          );
+
+          return {
+            ...movie,
+            trailerLink: trailer
+              ? `https://www.youtube.com/watch?v=${trailer.key}`
+              : null,
+          };
+        })
+      );
+
+      setMovieList(moviesWithTrailers);
     } catch (error) {
       console.error(`Error while fetching movies: ${error}`);
       setErrorMessage("Error while fetching movies. Please try again later");
@@ -52,41 +76,52 @@ const App = () => {
     }
   };
 
+  // Fetch Trending Movies from TMDB API
+
+  const fetchTrendingMovies = async () => {
+    try {
+      const url = `${API_BASE_URL}/trending/movie/day`;
+      const response = await fetch(url, API_OPTIONS);
+      const data = await response.json();
+      console.log(data.results, "trend");
+      setTrendingMovies(data.results);
+    } catch (error) {
+      console.error(`Error while fetching Trending movies: ${error}`);
+    }
+  };
+
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
   }, [debouncedSearchTerm]);
-  console.log(movieList);
+
+  useEffect(() => {
+    fetchTrendingMovies();
+  }, []);
 
   return (
     <main>
       <div className="pattern" />
       <div className="wrapper">
-        <header className=" -mt-10">
-          <img src="./hero.png" alt="banner" />
-          <h1>
-            Find <span className="text-gradient">Movies</span> You'll Enjoy
-            without the Hassle
-          </h1>
-        </header>
+        <Header />
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-
-        <section className="all-movies mt-20">
-          <h2>All Movies</h2>
-          {isLoading ? (
-            <Spinner />
-          ) : errorMessage ? (
-            <p className="text-red-500">{errorMessage}</p>
-          ) : (
-            <ul>
-              {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </ul>
-          )}
-        </section>
+        <MovieContainer
+          trendingMovies={trendingMovies}
+          movieList={movieList}
+          isLoading={isLoading}
+          errorMessage={errorMessage}
+        />
       </div>
     </main>
   );
 };
 
 export default App;
+
+{
+  /* <Trending trendingMovies={trendingMovies}  />
+<AllMovies
+  movieList={movieList}
+  isLoading={isLoading}
+  errorMessage={errorMessage}
+/> */
+}
