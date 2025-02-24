@@ -13,7 +13,7 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [trendingMovies, setTrendingMovies] = useState([]);
+  const [trendingMovies, setTrendingMovies] = useState(null);
 
   //API properties
 
@@ -126,24 +126,17 @@ const App = () => {
       <div className="wrapper">
         <Header />
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <MovieContainer
-          trendingMovies={trendingMovies}
-          movieList={movieList}
-          isLoading={isLoading}
-          errorMessage={errorMessage}
-        />
+        {trendingMovies && (
+          <MovieContainer
+            trendingMovies={trendingMovies}
+            movieList={movieList}
+            isLoading={isLoading}
+            errorMessage={errorMessage}
+          />
+        )}
       </div>
     </main>
   );
 };
 
 export default App;
-
-{
-  /* <Trending trendingMovies={trendingMovies}  />
-<AllMovies
-  movieList={movieList}
-  isLoading={isLoading}
-  errorMessage={errorMessage}
-/> */
-}

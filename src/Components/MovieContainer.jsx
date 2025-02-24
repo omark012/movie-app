@@ -21,6 +21,9 @@ const MovieContainer = ({
     setIsModalOpen(false);
     setSelectedMovie(null);
   };
+
+  console.log(trendingMovies);
+
   return (
     <>
       <Trending
